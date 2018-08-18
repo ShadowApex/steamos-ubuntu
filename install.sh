@@ -1,34 +1,84 @@
 #!/bin/bash
 
-# Get the installed user name
-export USER_NAME
-USER_NAME=$(grep '.*:x:1000' /etc/passwd | cut -d':' -f1)
+# Set the defaults. These can be overridden by specifying the value as an
+# environment variable when running this script.
+NON_INTERACTIVE="${NON_INTERACTIVE:-false}"
+STEAM_USER="${STEAM_USER:-steam}"
+export STEAM_USER
 
-# Install steam itself
-sudo apt install steam -y
+# Ensure the script is being run as root
+if [ "$EUID" -ne 0 ]; then
+	echo "This script must be run with sudo."
+	exit
+fi
 
-# Download the packages we need
+# Confirm from the user that it's OK to continue
+if [[ "${NON_INTERACTIVE}" != "true" ]]; then
+	echo "This script will configure a SteamOS-like experience on Ubuntu."
+	read -p "Do you want to continue? [Yy]" -n 1 -r
+	echo
+	if [[ $REPLY =~ ^[Yy]$ ]]; then
+		echo "Starting installation..."
+	else
+		echo "Aborting installation."
+		exit
+	fi
+fi
+
+# See if there is a 'steam' user account. If not, create it.
+if ! grep "^${STEAM_USER}" /etc/passwd > /dev/null; then
+	echo "Steam user '${STEAM_USER}' not found. Creating it..."
+	adduser --disabled-password --gecos "" "${STEAM_USER}"
+fi
+STEAM_UID=$(grep "^${STEAM_USER}" /etc/passwd | cut -d':' -f3)
+STEAM_GID=$(grep "^${STEAM_USER}" /etc/passwd | cut -d':' -f4)
+echo "Steam user '${STEAM_USER}' found with UID ${STEAM_UID} and GID ${STEAM_GID}"
+
+# Install steam and a terminal emulator that can be added from Big Picture Mode
+echo "Installing steam..."
+apt update
+apt install steam sakura -y
+
+# Download the packages we need. If we fail at downloading, stop the script.
+set -e
+echo "Downloading SteamOS packages..."
 wget http://repo.steamstatic.com/steamos/pool/main/s/steamos-compositor/steamos-compositor_1.34+bsos1_amd64.deb 
 wget http://repo.steamstatic.com/steamos/pool/main/s/steamos-modeswitch-inhibitor/steamos-modeswitch-inhibitor_1.10+bsos1_amd64.deb
 wget http://repo.steamstatic.com/steamos/pool/main/p/plymouth-themes-steamos/plymouth-themes-steamos_0.17+bsos2_all.deb
+set +e
 
-# Enable automatic login
-envsubst < custom.conf > /etc/gdm3/custom.conf
+# Enable automatic login. We use 'envsubst' to replace the user with ${STEAM_USER}.
+echo "Enabling automatic login..."
+envsubst < ./conf/custom.conf > /etc/gdm3/custom.conf
+
+# Create our session switching scripts to allow rebooting to the desktop
+echo "Creating reboot to session scripts..."
+envsubst < ./conf/reboot-to-desktop-mode.sh > /usr/local/sbin/reboot-to-desktop-mode
+envsubst < ./conf/reboot-to-steamos-mode.sh > /usr/local/sbin/reboot-to-steamos-mode
+chmod +x /usr/local/sbin/reboot-to-desktop-mode
+chmod +x /usr/local/sbin/reboot-to-steamos-mode
 
 # Install the steamos compositor, modeswitch, and themes
-sudo dpkg -i ./*glob*.deb
-sudo apt install -f
-sudo update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/steamos/steamos.plymouth 100
-echo "Please select the steamos theme:"
-sudo update-alternatives --config default.plymouth
+echo "Configuring the SteamOS boot themes..."
+dpkg -i ./*.deb &>/dev/null
+apt install -f -y
+update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/steamos/steamos.plymouth 100
+update-alternatives --set default.plymouth /usr/share/plymouth/themes/steamos/steamos.plymouth
 
 # Update the grub theme.
-echo 'GRUB_BACKGROUND=/usr/share/plymouth/themes/steamos/steamos_branded.png' | sudo tee -a /etc/default/grub
-sudo update-grub
+echo 'GRUB_BACKGROUND=/usr/share/plymouth/themes/steamos/steamos_branded.png' | tee -a /etc/default/grub
+update-grub
+
+# Set the X session to use the installed steamos session
+echo "Configuring the default session..."
+cp ./conf/steam-session.conf "/var/lib/AccountsService/users/${STEAM_USER}"
 
 # Add support for controllers
 # source: https://steamcommunity.com/app/353370/discussions/0/490123197956024380/
-sudo cp 99-steam-controller-perms.rules /lib/udev/rules.d/99-steam-controller-perms.rules
+echo "Adding support for controllers inside Steam..."
+cp ./conf/99-steam-controller-perms.rules /lib/udev/rules.d/99-steam-controller-perms.rules
 
 echo ""
-echo "Installation finished. Reboot to complete the setup."
+echo "Installation complete! Press ENTER to reboot or CTRL+C to exit"
+read -r
+reboot
