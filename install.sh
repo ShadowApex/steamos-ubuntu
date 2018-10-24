@@ -4,6 +4,7 @@
 # environment variable when running this script.
 INCLUDE_OPENSSH="${INCLUDE_OPENSSH:-true}"
 INCLUDE_SAKURA="${INCLUDE_SAKURA:-true}"
+INCLUDE_PROTONFIX="${INCLUDE_PROTONFIX:-true}"
 NON_INTERACTIVE="${NON_INTERACTIVE:-false}"
 STEAM_USER="${STEAM_USER:-steam}"
 export STEAM_USER
@@ -42,10 +43,50 @@ STEAM_UID=$(grep "^${STEAM_USER}" /etc/passwd | cut -d':' -f3)
 STEAM_GID=$(grep "^${STEAM_USER}" /etc/passwd | cut -d':' -f4)
 echo "Steam user '${STEAM_USER}' found with UID ${STEAM_UID} and GID ${STEAM_GID}"
 
+# Choosing from the guide in Proton (SteamPlay) Wiki https://github.com/ValveSoftware/Proton/wiki/Requirements
+# Check Graphic card
+echo "What is your Graphic Card Manufacturer"
+echo "1) Nvidia"
+echo "2) AMD"
+echo "3) Intel"
+read case;
+
+case $case in
+    1)  echo "Getting Latest Graphic Drivers..."
+        add-apt-repository ppa:graphics-drivers/ppa
+        apt update
+        apt install nvidia-driver-396 -y;;
+    2)  echo "Getting Latest AMD Graphic Drivers..."
+        add-apt-repository ppa:oibaf/graphics-drivers
+        apt update
+        apt apt -y upgrade;;
+    3)  echo "Getting Latest Intel Graphic Drivers..."
+        add-apt-repository ppa:paulo-miguel-dias/pkppa
+        apt update
+        apt dist-upgrade
+        apt install mesa-vulkan-drivers mesa-vulkan-drivers:i386 -y;;
+esac 
+
 # Install steam and steam device support.
 echo "Installing steam..."
 apt update
 apt install steam steam-devices -y
+
+# WIP - find a way to enable Steamplay without using Desktop Steam Client. Also maybe find a way to enable Steam Beta with latest Steamplay
+# Enable SteamPlay
+echo "Enable Steamplay..."
+
+# Enable Protonfix for ease of use with certain games that needs tweaking.
+# https://github.com/simons-public/protonfixes
+# Installing Protonfix for ease of use
+if [[ "${INCLUDE_PROTONFIX}" == "true" ]]; then
+    echo "Installing protonfix..."    
+    pip3 install protonfixes
+    # Installing cefpython3 for visual progress bar
+    pip install cefpython3
+
+    # Edit Proton * user_settings.py
+fi
 
 # Install a terminal emulator that can be added from Big Picture Mode.
 if [[ "${INCLUDE_SAKURA}" == "true" ]]; then
