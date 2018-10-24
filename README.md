@@ -59,6 +59,7 @@ Here is the list of all the available installation options:
 | ----------------- | ------- | ------------------------------------------------- |
 | `INCLUDE_OPENSSH` | true    | Whether or not OpenSSH server should be installed |
 | `INCLUDE_SAKURA`  | true    | Whether or not to install a terminal emulator     |
+| `INCLUDE_PROTONFIX`  | true    | Whether or not to install Protonfix            |
 | `NON_INTERACTIVE` | false   | Whether or not to prompt the user during install  |
 | `STEAM_USER`      | steam   | The username of the account to autologin as       |
 
