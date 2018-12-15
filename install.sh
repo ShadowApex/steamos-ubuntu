@@ -82,7 +82,7 @@ case $case in
     1)  echo "Getting Latest Graphic Drivers..."
         add-apt-repository ppa:graphics-drivers/ppa
         apt update
-        apt install nvidia-driver-396 -y;;
+        apt install nvidia-driver-415 -y;;
     2)  echo "Getting Latest AMD Graphic Drivers..."
         add-apt-repository ppa:oibaf/graphics-drivers
         apt update
