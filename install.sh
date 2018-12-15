@@ -18,18 +18,18 @@ if [[ "${NON_INTERACTIVE}" != "true" ]]; then
 		read -p "What name should the default user be? " -r
 		echo
 		if [[ "$REPLY" != "" ]]; then
-            STEAM_USER="$REPLY"
-            echo "Default user is setting to '$STEAM_USER'"
-            read -p "Is that correct? [Yy] " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
-                echo "Starting installation..."
+			STEAM_USER="$REPLY"
+			echo "Default user is setting to '$STEAM_USER'"
+			read -p "Is that correct? [Yy] " -n 1 -r
+			echo
+			if [[ $REPLY =~ ^[Yy]$ ]]; then
+				echo "Starting installation..."
 				export STEAM_USER
-            else
-                echo "Aborting installation."
-                exit
-            fi
-        fi
+			else
+				echo "Aborting installation."
+				exit
+			fi
+		fi
 	else
 		echo "Continuing installation."
 	fi
