@@ -24,6 +24,7 @@ if [[ "${NON_INTERACTIVE}" != "true" ]]; then
             echo
             if [[ $REPLY =~ ^[Yy]$ ]]; then
                 echo "Starting installation..."
+				export STEAM_USER
             else
                 echo "Aborting installation."
                 exit
