@@ -8,6 +8,32 @@ NON_INTERACTIVE="${NON_INTERACTIVE:-false}"
 STEAM_USER="${STEAM_USER:-steam}"
 export STEAM_USER
 
+
+# Adding a question about setting the default user just in case it wasn't 
+# set as an environment variable.
+if [[ "${NON_INTERACTIVE}" != "true" ]]; then
+	read -p "Do you want to change the default user? [Yy] " -n 1 -r
+	echo
+	if [[ $REPLY =~ ^[Yy]$ ]]; then
+		read -p "What name should the default user be? " -r
+		echo
+		if [[ "$REPLY" != "" ]]; then
+            STEAM_USER="$REPLY"
+            echo "Default user is setting to '$STEAM_USER'"
+            read -p "Is that correct? [Yy] " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                echo "Starting installation..."
+            else
+                echo "Aborting installation."
+                exit
+            fi
+        fi
+	else
+		echo "Continuing installation."
+	fi
+fi
+
 # Configure the default versions of the SteamOS packages to use. These generally
 # don't ever need to be overridden.
 STEAMOS_COMPOSITOR_VER="${STEAMOS_COMPOSITOR_VER:-1.34+bsos1_amd64}"
