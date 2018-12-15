@@ -106,7 +106,7 @@ chmod +x /usr/local/sbin/reboot-to-desktop-mode
 chmod +x /usr/local/sbin/reboot-to-steamos-mode
 echo "Adding scripts to sudoers directory in case you want a password."
 echo "You will still need your user as admin to use sudo"
-cp ./conf/steamos_reboot.sh /etc/sudoers.d/
+cp ./conf/steamos-reboot.sh /etc/sudoers.d/
 
 # Install the steamos compositor, modeswitch, and themes
 echo "Configuring the SteamOS boot themes..."
