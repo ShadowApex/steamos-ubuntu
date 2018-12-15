@@ -51,7 +51,7 @@ fi
 # Confirm from the user that it's OK to continue
 if [[ "${NON_INTERACTIVE}" != "true" ]]; then
 	echo "This script will configure a SteamOS-like experience on Ubuntu."
-	read -p "Do you want to continue? [Yy]" -n 1 -r
+	read -p "Do you want to continue? [Yy] " -n 1 -r
 	echo
 	if [[ $REPLY =~ ^[Yy]$ ]]; then
 		echo "Starting installation..."
@@ -79,19 +79,19 @@ echo "3) Intel"
 read case;
 
 case $case in
-    1)  echo "Getting Latest Graphic Drivers..."
-        add-apt-repository ppa:graphics-drivers/ppa
-        apt update
-        apt install nvidia-driver-415 -y;;
-    2)  echo "Getting Latest AMD Graphic Drivers..."
-        add-apt-repository ppa:oibaf/graphics-drivers
-        apt update
-        apt apt -y upgrade;;
-    3)  echo "Getting Latest Intel Graphic Drivers..."
-        add-apt-repository ppa:paulo-miguel-dias/pkppa
-        apt update
-        apt dist-upgrade
-        apt install mesa-vulkan-drivers mesa-vulkan-drivers:i386 -y;;
+	1)	echo "Getting Latest Graphic Drivers..."
+		add-apt-repository ppa:graphics-drivers/ppa
+		apt update
+		apt install nvidia-driver-415 -y;;
+	2)	echo "Getting Latest AMD Graphic Drivers..."
+		add-apt-repository ppa:oibaf/graphics-drivers
+		apt update
+		apt apt -y upgrade;;
+	3)	echo "Getting Latest Intel Graphic Drivers..."
+		add-apt-repository ppa:paulo-miguel-dias/pkppa
+		apt update
+		apt dist-upgrade
+		apt install mesa-vulkan-drivers mesa-vulkan-drivers:i386 -y;;
 esac 
 
 # Install steam and steam device support.
@@ -107,12 +107,11 @@ echo "Enable Steamplay..."
 # https://github.com/simons-public/protonfixes
 # Installing Protonfix for ease of use
 if [[ "${INCLUDE_PROTONFIX}" == "true" ]]; then
-    echo "Installing protonfix..."    
-    pip3 install protonfixes
-    # Installing cefpython3 for visual progress bar
-    pip install cefpython3
-
-    # Edit Proton * user_settings.py
+	echo "Installing protonfix..."    
+	pip3 install protonfixes
+	# Installing cefpython3 for visual progress bar
+	pip install cefpython3
+	# Edit Proton * user_settings.py
 fi
 
 # Install a terminal emulator that can be added from Big Picture Mode.
