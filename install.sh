@@ -101,14 +101,15 @@ apt install steam steam-devices -y
 
 # WIP - find a way to enable Steamplay without using Desktop Steam Client. Also maybe find a way to enable Steam Beta with latest Steamplay
 # Enable SteamPlay
-echo "Enable Steamplay..."
+#echo "Enable Steamplay..."
 
 # Enable Protonfix for ease of use with certain games that needs tweaking.
 # https://github.com/simons-public/protonfixes
 # Installing Protonfix for ease of use
 if [[ "${INCLUDE_PROTONFIX}" == "true" ]]; then
+	apt install python-pip python-pip3 -y
 	echo "Installing protonfix..."    
-	pip3 install protonfixes
+	pip3 install protonfixes --upgrade
 	# Installing cefpython3 for visual progress bar
 	pip install cefpython3
 	# Edit Proton * user_settings.py
