@@ -9,6 +9,30 @@ NON_INTERACTIVE="${NON_INTERACTIVE:-false}"
 STEAM_USER="${STEAM_USER:-steam}"
 export STEAM_USER
 
+# Configure the default versions of the SteamOS packages to use. These generally
+# don't ever need to be overridden.
+STEAMOS_COMPOSITOR_VER="${STEAMOS_COMPOSITOR_VER:-1.35+bsos1_amd64}"
+STEAMOS_MODESWITCH_VER="${STEAMOS_MODESWITCH_VER:-1.10+bsos1_amd64}"
+STEAMOS_PLYMOUTH_VER="${STEAMOS_PLYMOUTH_VER:-0.17+bsos2_all}"
+
+# Ensure the script is being run as root
+if [ "$EUID" -ne 0 ]; then
+	echo "This script must be run with sudo."
+	exit
+fi
+
+# Confirm from the user that it's OK to continue
+if [[ "${NON_INTERACTIVE}" != "true" ]]; then
+	echo "This script will configure a SteamOS-like experience on Ubuntu."
+	read -p "Do you want to continue? [Yy] " -n 1 -r
+	echo
+	if [[ $REPLY =~ ^[Yy]$ ]]; then
+		echo "Starting installation..."
+	else
+		echo "Aborting installation."
+		exit
+	fi
+fi
 
 # Adding a question about setting the default user just in case it wasn't 
 # set as an environment variable.
@@ -33,31 +57,6 @@ if [[ "${NON_INTERACTIVE}" != "true" ]]; then
 		fi
 	else
 		echo "Continuing installation."
-	fi
-fi
-
-# Configure the default versions of the SteamOS packages to use. These generally
-# don't ever need to be overridden.
-STEAMOS_COMPOSITOR_VER="${STEAMOS_COMPOSITOR_VER:-1.34+bsos1_amd64}"
-STEAMOS_MODESWITCH_VER="${STEAMOS_MODESWITCH_VER:-1.10+bsos1_amd64}"
-STEAMOS_PLYMOUTH_VER="${STEAMOS_PLYMOUTH_VER:-0.17+bsos2_all}"
-
-# Ensure the script is being run as root
-if [ "$EUID" -ne 0 ]; then
-	echo "This script must be run with sudo."
-	exit
-fi
-
-# Confirm from the user that it's OK to continue
-if [[ "${NON_INTERACTIVE}" != "true" ]]; then
-	echo "This script will configure a SteamOS-like experience on Ubuntu."
-	read -p "Do you want to continue? [Yy] " -n 1 -r
-	echo
-	if [[ $REPLY =~ ^[Yy]$ ]]; then
-		echo "Starting installation..."
-	else
-		echo "Aborting installation."
-		exit
 	fi
 fi
 
