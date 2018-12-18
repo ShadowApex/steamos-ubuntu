@@ -106,7 +106,7 @@ apt install steam steam-devices -y
 # https://github.com/simons-public/protonfixes
 # Installing Protonfix for ease of use
 if [[ "${INCLUDE_PROTONFIX}" == "true" ]]; then
-	apt install python-pip python-pip3 -y
+	apt install python-pip python3-pip -y
 	echo "Installing protonfix..."    
 	pip3 install protonfixes --upgrade
 	# Installing cefpython3 for visual progress bar
