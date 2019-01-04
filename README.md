@@ -12,6 +12,8 @@ It will do the following:
 * Configure autologin for the `steam` user account.
 * Configure the default session to the Steam Compositor.
 * Create `reboot-to-[steamos,desktop]-mode` scripts to switch between sessions.
+* Optionally install the latest graphics drivers for AMD, Nvidia, and Intel GPUs.
+* Optionally install proton fixes.
 
 For best results, this should be run on a fresh installation of
 Ubuntu 18.04 desktop.
@@ -24,10 +26,13 @@ tested.
 ## Installation
 Installation is very simple. Follow these steps to install SteamOS Ubuntu:
 
-1. Clone or download this repository:    
+1. Install git:    
+`sudo apt install git -y`
+
+2. Clone or download this repository:    
 `git clone https://github.com/ShadowApex/steamos-ubuntu.git`
 
-2. Run the installation script:    
+3. Run the installation script:    
 `cd steamos-ubuntu`    
 `sudo ./install.sh`
 
@@ -55,13 +60,15 @@ interactively, you can run this command:
 
 Here is the list of all the available installation options:
 
-| Option Name       | Default | Description                                       |
-| ----------------- | ------- | ------------------------------------------------- |
-| `INCLUDE_OPENSSH` | true    | Whether or not OpenSSH server should be installed |
-| `INCLUDE_SAKURA`  | true    | Whether or not to install a terminal emulator     |
-| `INCLUDE_PROTONFIX`  | true    | Whether or not to install Protonfix            |
-| `NON_INTERACTIVE` | false   | Whether or not to prompt the user during install  |
-| `STEAM_USER`      | steam   | The username of the account to autologin as       |
+| Option Name          | Default | Description                                              |
+| -------------------- | ------- | -------------------------------------------------------- |
+| `INCLUDE_OPENSSH`    | true    | Whether or not OpenSSH server should be installed        |
+| `INCLUDE_SAKURA`     | true    | Whether or not to install a terminal emulator            |
+| `INCLUDE_PROTONFIX`  | true    | Whether or not to install Protonfix                      |
+| `INCLUDE_GPU_DRIVERS`| true    | Whether or not to install the latest GPU drivers         |
+| `GPU_TYPE`           | auto    | GPU drivers to install. Can be: auto, nvidia, amd, intel |
+| `NON_INTERACTIVE`    | false   | Whether or not to prompt the user during install         |
+| `STEAM_USER`         | steam   | The username of the account to autologin as              |
 
 ## Legal
 The Steam logo and Ubuntu logo are registered trademarks of Valve Corporation

@@ -4,7 +4,9 @@
 # environment variable when running this script.
 INCLUDE_OPENSSH="${INCLUDE_OPENSSH:-true}"
 INCLUDE_SAKURA="${INCLUDE_SAKURA:-true}"
-INCLUDE_PROTONFIX="${INCLUDE_PROTONFIX:-true}"
+INCLUDE_PROTONFIX="${INCLUDE_PROTONFIX:-false}"
+INCLUDE_GPU_DRIVERS="${INCLUDE_GPU_DRIVERS:-true}"
+GPU_TYPE="${GPU_TYPE:-auto}"
 NON_INTERACTIVE="${NON_INTERACTIVE:-false}"
 STEAM_USER="${STEAM_USER:-steam}"
 export STEAM_USER
@@ -23,6 +25,14 @@ fi
 
 # Confirm from the user that it's OK to continue
 if [[ "${NON_INTERACTIVE}" != "true" ]]; then
+	echo "Options:"
+	echo "  OpenSSH:      ${INCLUDE_OPENSSH}"
+	echo "  Terminal:     ${INCLUDE_SAKURA}"
+	echo "  Proton Fixes: ${INCLUDE_PROTONFIX}"
+	echo "  GPU Drivers:  ${INCLUDE_GPU_DRIVERS}"
+	echo "    GPU Type:   ${GPU_TYPE}"
+	echo "  Steam User:   ${STEAM_USER}"
+	echo ""
 	echo "This script will configure a SteamOS-like experience on Ubuntu."
 	read -p "Do you want to continue? [Yy] " -n 1 -r
 	echo
@@ -31,32 +41,6 @@ if [[ "${NON_INTERACTIVE}" != "true" ]]; then
 	else
 		echo "Aborting installation."
 		exit
-	fi
-fi
-
-# Adding a question about setting the default user just in case it wasn't 
-# set as an environment variable.
-if [[ "${NON_INTERACTIVE}" != "true" ]]; then
-	read -p "Do you want to change the default user? [Yy] " -n 1 -r
-	echo
-	if [[ $REPLY =~ ^[Yy]$ ]]; then
-		read -p "What name should the default user be? " -r
-		echo
-		if [[ "$REPLY" != "" ]]; then
-			STEAM_USER="$REPLY"
-			echo "Default user is setting to '$STEAM_USER'"
-			read -p "Is that correct? [Yy] " -n 1 -r
-			echo
-			if [[ $REPLY =~ ^[Yy]$ ]]; then
-				echo "Starting installation..."
-				export STEAM_USER
-			else
-				echo "Aborting installation."
-				exit
-			fi
-		fi
-	else
-		echo "Continuing installation."
 	fi
 fi
 
@@ -70,28 +54,63 @@ STEAM_GID=$(grep "^${STEAM_USER}" /etc/passwd | cut -d':' -f4)
 echo "Steam user '${STEAM_USER}' found with UID ${STEAM_UID} and GID ${STEAM_GID}"
 
 # Choosing from the guide in Proton (SteamPlay) Wiki https://github.com/ValveSoftware/Proton/wiki/Requirements
-# Check Graphic card
-echo "What is your Graphic Card Manufacturer"
-echo "1) Nvidia"
-echo "2) AMD"
-echo "3) Intel"
-read case;
+# Install the GPU drivers if it was specified by the user.
+if [[ "${INCLUDE_GPU_DRIVERS}" == "true" ]]; then
 
-case $case in
-	1)	echo "Getting Latest Graphic Drivers..."
-		add-apt-repository ppa:graphics-drivers/ppa
-		apt update
-		apt install nvidia-driver-415 -y;;
-	2)	echo "Getting Latest AMD Graphic Drivers..."
-		add-apt-repository ppa:oibaf/graphics-drivers
-		apt update
-		apt apt -y upgrade;;
-	3)	echo "Getting Latest Intel Graphic Drivers..."
-		add-apt-repository ppa:paulo-miguel-dias/pkppa
-		apt update
-		apt dist-upgrade
-		apt install mesa-vulkan-drivers mesa-vulkan-drivers:i386 -y;;
-esac 
+	# Autodetect the GPU so we can install the appropriate drivers.
+	if [[ "${GPU_TYPE}" == "auto" ]]; then
+		echo "Auto-detecting GPU..."
+		if lspci | grep -i vga | grep -iq nvidia; then
+			echo "  Detected Nvidia GPU"
+			GPU_TYPE="nvidia"
+		elif lspci | grep -i vga | grep -iq amd; then
+			echo "  Detected AMD GPU"
+			GPU_TYPE="amd"
+		elif lspci | grep -i vga | grep -iq intel; then
+			GPU_TYPE="intel"
+			echo "  Detected Intel GPU"
+		else
+			GPU_TYPE="none"
+			echo "  Unable to determine GPU. Skipping driver install."
+		fi
+	fi
+	
+	# Install the GPU drivers.
+	case "${GPU_TYPE}" in
+		nvidia)
+			echo "Installing the latest Nvidia drivers..."
+			add-apt-repository ppa:graphics-drivers/ppa
+			apt update
+			apt install nvidia-driver-415 -y
+			;;
+		amd)
+			echo "Installing the latest AMD drivers..."
+			add-apt-repository ppa:oibaf/graphics-drivers
+			apt update
+			apt dist-upgrade -y
+	
+			dpkg --add-architecture i386
+			apt update
+			apt install mesa-vulkan-drivers mesa-vulkan-drivers:i386 -y
+			;;
+		intel)
+			echo "Installing the latest mesa drivers..."
+			add-apt-repository ppa:paulo-miguel-dias/pkppa
+			apt update
+			apt dist-upgrade -y
+	
+			dpkg --add-architecture i386
+			apt update
+			apt install mesa-vulkan-drivers mesa-vulkan-drivers:i386 -y
+			;;
+		none)
+			echo "GPU not detected."
+			;;
+		*)
+			echo "Skipping GPU driver installation."
+			;;
+	esac
+fi
 
 # Install steam and steam device support.
 echo "Installing steam..."
@@ -144,9 +163,10 @@ envsubst < ./conf/reboot-to-desktop-mode.sh > /usr/local/sbin/reboot-to-desktop-
 envsubst < ./conf/reboot-to-steamos-mode.sh > /usr/local/sbin/reboot-to-steamos-mode
 chmod +x /usr/local/sbin/reboot-to-desktop-mode
 chmod +x /usr/local/sbin/reboot-to-steamos-mode
-echo "Adding scripts to sudoers directory in case you want a password."
-echo "You will still need your user as admin to use sudo"
-cp ./conf/steamos-reboot.sh /etc/sudoers.d/steamos-reboot
+
+# Create a sudoers rule to allow passwordless reboots between sessions.
+echo "Creating sudoers rules to allow rebooting between sessions..."
+cp ./conf/reboot-sudoers.conf /etc/sudoers.d/steamos-reboot
 chmod 440 /etc/sudoers.d/steamos-reboot
 
 # Install the steamos compositor, modeswitch, and themes
