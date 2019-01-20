@@ -4,13 +4,16 @@
 # environment variable when running this script.
 INCLUDE_OPENSSH="${INCLUDE_OPENSSH:-true}"
 INCLUDE_SAKURA="${INCLUDE_SAKURA:-true}"
+INCLUDE_PROTONFIX="${INCLUDE_PROTONFIX:-false}"
+INCLUDE_GPU_DRIVERS="${INCLUDE_GPU_DRIVERS:-true}"
+GPU_TYPE="${GPU_TYPE:-auto}"
 NON_INTERACTIVE="${NON_INTERACTIVE:-false}"
 STEAM_USER="${STEAM_USER:-steam}"
 export STEAM_USER
 
 # Configure the default versions of the SteamOS packages to use. These generally
 # don't ever need to be overridden.
-STEAMOS_COMPOSITOR_VER="${STEAMOS_COMPOSITOR_VER:-1.34+bsos1_amd64}"
+STEAMOS_COMPOSITOR_VER="${STEAMOS_COMPOSITOR_VER:-1.35+bsos1_amd64}"
 STEAMOS_MODESWITCH_VER="${STEAMOS_MODESWITCH_VER:-1.10+bsos1_amd64}"
 STEAMOS_PLYMOUTH_VER="${STEAMOS_PLYMOUTH_VER:-0.17+bsos2_all}"
 
@@ -22,8 +25,16 @@ fi
 
 # Confirm from the user that it's OK to continue
 if [[ "${NON_INTERACTIVE}" != "true" ]]; then
+	echo "Options:"
+	echo "  OpenSSH:      ${INCLUDE_OPENSSH}"
+	echo "  Terminal:     ${INCLUDE_SAKURA}"
+	echo "  Proton Fixes: ${INCLUDE_PROTONFIX}"
+	echo "  GPU Drivers:  ${INCLUDE_GPU_DRIVERS}"
+	echo "    GPU Type:   ${GPU_TYPE}"
+	echo "  Steam User:   ${STEAM_USER}"
+	echo ""
 	echo "This script will configure a SteamOS-like experience on Ubuntu."
-	read -p "Do you want to continue? [Yy]" -n 1 -r
+	read -p "Do you want to continue? [Yy] " -n 1 -r
 	echo
 	if [[ $REPLY =~ ^[Yy]$ ]]; then
 		echo "Starting installation..."
@@ -42,10 +53,85 @@ STEAM_UID=$(grep "^${STEAM_USER}" /etc/passwd | cut -d':' -f3)
 STEAM_GID=$(grep "^${STEAM_USER}" /etc/passwd | cut -d':' -f4)
 echo "Steam user '${STEAM_USER}' found with UID ${STEAM_UID} and GID ${STEAM_GID}"
 
+# Choosing from the guide in Proton (SteamPlay) Wiki https://github.com/ValveSoftware/Proton/wiki/Requirements
+# Install the GPU drivers if it was specified by the user.
+if [[ "${INCLUDE_GPU_DRIVERS}" == "true" ]]; then
+
+	# Autodetect the GPU so we can install the appropriate drivers.
+	if [[ "${GPU_TYPE}" == "auto" ]]; then
+		echo "Auto-detecting GPU..."
+		if lspci | grep -i vga | grep -iq nvidia; then
+			echo "  Detected Nvidia GPU"
+			GPU_TYPE="nvidia"
+		elif lspci | grep -i vga | grep -iq amd; then
+			echo "  Detected AMD GPU"
+			GPU_TYPE="amd"
+		elif lspci | grep -i vga | grep -iq intel; then
+			GPU_TYPE="intel"
+			echo "  Detected Intel GPU"
+		else
+			GPU_TYPE="none"
+			echo "  Unable to determine GPU. Skipping driver install."
+		fi
+	fi
+	
+	# Install the GPU drivers.
+	case "${GPU_TYPE}" in
+		nvidia)
+			echo "Installing the latest Nvidia drivers..."
+			add-apt-repository ppa:graphics-drivers/ppa -y
+			apt update
+			apt install nvidia-driver-415 -y
+			;;
+		amd)
+			echo "Installing the latest AMD drivers..."
+			add-apt-repository ppa:oibaf/graphics-drivers -y
+			apt update
+			apt dist-upgrade -y
+	
+			dpkg --add-architecture i386
+			apt update
+			apt install mesa-vulkan-drivers mesa-vulkan-drivers:i386 -y
+			;;
+		intel)
+			echo "Installing the latest mesa drivers..."
+			add-apt-repository ppa:paulo-miguel-dias/pkppa -y
+			apt update
+			apt dist-upgrade -y
+	
+			dpkg --add-architecture i386
+			apt update
+			apt install mesa-vulkan-drivers mesa-vulkan-drivers:i386 -y
+			;;
+		none)
+			echo "GPU not detected."
+			;;
+		*)
+			echo "Skipping GPU driver installation."
+			;;
+	esac
+fi
+
 # Install steam and steam device support.
 echo "Installing steam..."
 apt update
-apt install steam steam-devices -y
+apt install steam steam-devices x11-utils -y
+
+# WIP - find a way to enable Steamplay without using Desktop Steam Client. Also maybe find a way to enable Steam Beta with latest Steamplay
+# Enable SteamPlay
+#echo "Enable Steamplay..."
+
+# Enable Protonfix for ease of use with certain games that needs tweaking.
+# https://github.com/simons-public/protonfixes
+# Installing Protonfix for ease of use
+if [[ "${INCLUDE_PROTONFIX}" == "true" ]]; then
+	apt install python-pip python3-pip -y
+	echo "Installing protonfix..."    
+	pip3 install protonfixes --upgrade
+	# Installing cefpython3 for visual progress bar
+	pip install cefpython3
+	# Edit Proton * user_settings.py
+fi
 
 # Install a terminal emulator that can be added from Big Picture Mode.
 if [[ "${INCLUDE_SAKURA}" == "true" ]]; then
@@ -77,6 +163,15 @@ envsubst < ./conf/reboot-to-desktop-mode.sh > /usr/local/sbin/reboot-to-desktop-
 envsubst < ./conf/reboot-to-steamos-mode.sh > /usr/local/sbin/reboot-to-steamos-mode
 chmod +x /usr/local/sbin/reboot-to-desktop-mode
 chmod +x /usr/local/sbin/reboot-to-steamos-mode
+
+# Create the "steamos-fg" script as a workaround for games like Deadcells with the Steam compositor.
+cp ./conf/steamos-fg.sh /usr/local/sbin/steamos-fg
+chmod +x /usr/local/sbin/steamos-fg
+
+# Create a sudoers rule to allow passwordless reboots between sessions.
+echo "Creating sudoers rules to allow rebooting between sessions..."
+cp ./conf/reboot-sudoers.conf /etc/sudoers.d/steamos-reboot
+chmod 440 /etc/sudoers.d/steamos-reboot
 
 # Install the steamos compositor, modeswitch, and themes
 echo "Configuring the SteamOS boot themes..."
