@@ -12,6 +12,7 @@ It will do the following:
 * Configure autologin for the `steam` user account.
 * Configure the default session to the Steam Compositor.
 * Create `reboot-to-[steamos,desktop]-mode` scripts to switch between sessions.
+* Create `steamos-fg` script for games that won't run in the foreground on the SteamOS Compositor.
 * Optionally install the latest graphics drivers for AMD, Nvidia, and Intel GPUs.
 * Optionally install proton fixes.
 
@@ -36,18 +37,6 @@ Installation is very simple. Follow these steps to install SteamOS Ubuntu:
 `cd steamos-ubuntu`    
 `sudo ./install.sh`
 
-## Switching between sessions
-
-After installation, there will not be an easy way to switch between a regular
-Gnome desktop session and Steam. In order to make it easier to switch between
-the two, there are two commands that are installed that will let you switch 
-between the two:
-
-* `reboot-to-desktop-mode` - sets gnome as the default session and reboots
-* `reboot-to-steamos-mode` - sets steam as the default session and reboots
-
-You can access the terminal from Steam by adding a local shortcut for `Sakura`.
-
 ## Advanced Options
 The installation script has several options that you can specify upon installation
 in the form of environment variables. You can specify these options by prefixing
@@ -69,6 +58,39 @@ Here is the list of all the available installation options:
 | `GPU_TYPE`           | auto    | GPU drivers to install. Can be: auto, nvidia, amd, intel |
 | `NON_INTERACTIVE`    | false   | Whether or not to prompt the user during install         |
 | `STEAM_USER`         | steam   | The username of the account to autologin as              |
+
+## FAQ
+
+### How can I switch between desktop mode and SteamOS mode?
+
+After installation, there will not be an easy way to switch between a regular
+Gnome desktop session and Steam. In order to make it easier to switch between
+the two, there are two commands that are installed that will let you switch 
+between the two:
+
+* `reboot-to-desktop-mode` - sets gnome as the default session and reboots
+* `reboot-to-steamos-mode` - sets steam as the default session and reboots
+
+You can access the terminal from Steam by adding a local shortcut for `Sakura`.
+
+### Some games aren't launching correctly in SteamOS mode
+When using the SteamOS compositor, some games start behind the big picture UI and
+no graphics are displayed. The `steamos-fg` script forces such games to be shown 
+in the foreground.
+
+Affected games this script fixes include:
+
+    Dead Cells
+    Dirt Rally
+    Civilization VI
+    The Count Lucanor
+    Mad Max
+
+To fix this, add `steamos-fg %command%` to the launch options for each game you 
+wish to use this script with.
+
+## Attributions
+* Alkazar for [steamos-fg](https://github.com/alkazar/steamos-fg)
 
 ## Legal
 The Steam logo and Ubuntu logo are registered trademarks of Valve Corporation

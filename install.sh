@@ -115,7 +115,7 @@ fi
 # Install steam and steam device support.
 echo "Installing steam..."
 apt update
-apt install steam steam-devices -y
+apt install steam steam-devices x11-utils -y
 
 # WIP - find a way to enable Steamplay without using Desktop Steam Client. Also maybe find a way to enable Steam Beta with latest Steamplay
 # Enable SteamPlay
@@ -163,6 +163,10 @@ envsubst < ./conf/reboot-to-desktop-mode.sh > /usr/local/sbin/reboot-to-desktop-
 envsubst < ./conf/reboot-to-steamos-mode.sh > /usr/local/sbin/reboot-to-steamos-mode
 chmod +x /usr/local/sbin/reboot-to-desktop-mode
 chmod +x /usr/local/sbin/reboot-to-steamos-mode
+
+# Create the "steamos-fg" script as a workaround for games like Deadcells with the Steam compositor.
+cp ./conf/steamos-fg.sh /usr/local/sbin/steamos-fg
+chmod +x /usr/local/sbin/steamos-fg
 
 # Create a sudoers rule to allow passwordless reboots between sessions.
 echo "Creating sudoers rules to allow rebooting between sessions..."
