@@ -44,6 +44,14 @@ if [[ "${NON_INTERACTIVE}" != "true" ]]; then
 	fi
 fi
 
+# Download the packages we need. If we fail at downloading, stop the script.
+set -e
+echo "Downloading SteamOS packages..."
+wget "http://repo.steamstatic.com/steamos/pool/main/s/steamos-compositor/steamos-compositor_${STEAMOS_COMPOSITOR_VER}.deb"
+wget "http://repo.steamstatic.com/steamos/pool/main/s/steamos-modeswitch-inhibitor/steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb"
+wget "http://repo.steamstatic.com/steamos/pool/main/p/plymouth-themes-steamos/plymouth-themes-steamos_${STEAMOS_PLYMOUTH_VER}.deb"
+set +e
+
 # See if there is a 'steam' user account. If not, create it.
 if ! grep "^${STEAM_USER}" /etc/passwd > /dev/null; then
 	echo "Steam user '${STEAM_USER}' not found. Creating it..."
@@ -144,14 +152,6 @@ if [[ "${INCLUDE_OPENSSH}" == "true" ]]; then
 	echo "Installing OpenSSH Server..."
 	apt install openssh-server -y
 fi
-
-# Download the packages we need. If we fail at downloading, stop the script.
-set -e
-echo "Downloading SteamOS packages..."
-wget "http://repo.steamstatic.com/steamos/pool/main/s/steamos-compositor/steamos-compositor_${STEAMOS_COMPOSITOR_VER}.deb"
-wget "http://repo.steamstatic.com/steamos/pool/main/s/steamos-modeswitch-inhibitor/steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb"
-wget "http://repo.steamstatic.com/steamos/pool/main/p/plymouth-themes-steamos/plymouth-themes-steamos_${STEAMOS_PLYMOUTH_VER}.deb"
-set +e
 
 # Enable automatic login. We use 'envsubst' to replace the user with ${STEAM_USER}.
 echo "Enabling automatic login..."
