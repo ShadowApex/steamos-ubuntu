@@ -127,10 +127,6 @@ echo "Installing steam..."
 apt update
 apt install steam steam-devices x11-utils -y
 
-# WIP - find a way to enable Steamplay without using Desktop Steam Client. Also maybe find a way to enable Steam Beta with latest Steamplay
-# Enable SteamPlay
-#echo "Enable Steamplay..."
-
 # Enable Protonfix for ease of use with certain games that needs tweaking.
 # https://github.com/simons-public/protonfixes
 # Installing Protonfix for ease of use
@@ -194,7 +190,14 @@ update-grub
 echo "Configuring the default session..."
 cp ./conf/steam-session.conf "/var/lib/AccountsService/users/${STEAM_USER}"
 
+# WIP - find a way to enable Steamplay without using Desktop Steam Client. Also maybe find a way to enable Steam Beta with latest Steamplay
+# Enable SteamPlay
+echo "Enable Steamplay..."
+echo "Starting Steam to create initial configurations."
+echo "Close steam to continue."
+sudo STEAM_USER=${STEAM_USER} ./run_steam.sh
+
 echo ""
 echo "Installation complete! Press ENTER to reboot or CTRL+C to exit"
 read -r
-reboot
+sudo reboot
