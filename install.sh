@@ -121,10 +121,6 @@ if [ ! -e /usr/games/steam ]; then
 	apt install steam steam-devices x11-utils -y
 fi
 
-# WIP - find a way to enable Steamplay without using Desktop Steam Client. Also maybe find a way to enable Steam Beta with latest Steamplay
-# Enable SteamPlay
-#echo "Enable Steamplay..."
-
 # Enable Protonfix for ease of use with certain games that needs tweaking.
 # https://github.com/simons-public/protonfixes
 # Installing Protonfix for ease of use
@@ -227,7 +223,10 @@ if [[ "${UPDATE_CONFFILES}" == "true" ]]; then
 	fi
 fi
 
-echo ""
-echo "Installation complete! Press ENTER to reboot or CTRL+C to exit"
+echo
+echo "Installation complete!"
+echo
+echo "You should run steam in desktop mode once to update and enable SteamPlay in settings."
+echo "Press [ENTER] to reboot or [CTRL]+C to exit"
 read -r
-reboot
+reboot-to-desktop-mode
