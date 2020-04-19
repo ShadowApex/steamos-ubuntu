@@ -19,6 +19,9 @@ STEAMOS_COMPOSITOR_VER="${STEAMOS_COMPOSITOR_VER:-1.35+bsos1_amd64}"
 STEAMOS_MODESWITCH_VER="${STEAMOS_MODESWITCH_VER:-1.10+bsos1_amd64}"
 STEAMOS_PLYMOUTH_VER="${STEAMOS_PLYMOUTH_VER:-0.17+bsos2_all}"
 
+# The default of this script is to reboot to steamos.
+REBOOT_MODE=reboot-to-steamos-mode
+
 # Ensure the script is being run as root
 if [ "$EUID" -ne 0 ]; then
 	echo "This script must be run with sudo."
@@ -121,6 +124,8 @@ if [ ! -e /usr/games/steam ]; then
 	echo "Installing steam..."
 	apt update
 	apt install steam steam-devices x11-utils -y
+	echo "You should run steam in desktop mode once to update and enable SteamPlay in settings."
+	REBOOT_MODE=reboot-to-desktop-mode
 fi
 
 # Enable Protonfix for ease of use with certain games that needs tweaking.
@@ -230,7 +235,6 @@ fi
 echo
 echo "Installation complete!"
 echo
-echo "You should run steam in desktop mode once to update and enable SteamPlay in settings."
 echo "Press [ENTER] to reboot or [CTRL]+C to exit"
 read -r
-reboot-to-desktop-mode
+eval $REBOOT_MODE
