@@ -76,7 +76,7 @@ if [[ "${INCLUDE_GPU_DRIVERS}" == "true" ]]; then
 			echo "  Unable to determine GPU. Skipping driver install."
 		fi
 	fi
-	
+
 	# Install the GPU drivers.
 	case "${GPU_TYPE}" in
 		nvidia)
@@ -90,7 +90,7 @@ if [[ "${INCLUDE_GPU_DRIVERS}" == "true" ]]; then
 			add-apt-repository ppa:oibaf/graphics-drivers -y
 			apt update
 			apt dist-upgrade -y
-	
+
 			dpkg --add-architecture i386
 			apt update
 			apt install mesa-vulkan-drivers mesa-vulkan-drivers:i386 -y
@@ -100,7 +100,7 @@ if [[ "${INCLUDE_GPU_DRIVERS}" == "true" ]]; then
 			add-apt-repository ppa:paulo-miguel-dias/pkppa -y
 			apt update
 			apt dist-upgrade -y
-	
+
 			dpkg --add-architecture i386
 			apt update
 			apt install mesa-vulkan-drivers mesa-vulkan-drivers:i386 -y
@@ -130,7 +130,7 @@ fi
 # Installing Protonfix for ease of use
 if [[ "${INCLUDE_PROTONFIX}" == "true" ]]; then
 	apt install python-pip python3-pip -y
-	echo "Installing protonfix..."    
+	echo "Installing protonfix..."
 	pip3 install protonfixes --upgrade
 	# Installing cefpython3 for visual progress bar
 	pip install cefpython3
