@@ -46,10 +46,18 @@ fi
 
 # Download the packages we need. If we fail at downloading, stop the script.
 set -e
-echo "Downloading SteamOS packages..."
-wget "http://repo.steampowered.com/steamos/pool/main/s/steamos-compositor/steamos-compositor_${STEAMOS_COMPOSITOR_VER}.deb"
-wget "http://repo.steampowered.com/steamos/pool/main/s/steamos-modeswitch-inhibitor/steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb"
-wget "http://repo.steampowered.com/steamos/pool/main/p/plymouth-themes-steamos/plymouth-themes-steamos_${STEAMOS_PLYMOUTH_VER}.deb"
+if [ ! -e steamos-compositor_${STEAMOS_COMPOSITOR_VER}.deb ]; then
+	echo "Downloading SteamOS Compositor..."
+	wget "http://repo.steampowered.com/steamos/pool/main/s/steamos-compositor/steamos-compositor_${STEAMOS_COMPOSITOR_VER}.deb"
+fi
+if [ ! -e steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb ]; then
+	echo "Downloading SteamOS ModeSwitch..."
+	wget "http://repo.steampowered.com/steamos/pool/main/s/steamos-modeswitch-inhibitor/steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb"
+fi
+if [ ! -e plymouth-themes-steamos_${STEAMOS_PLYMOUTH_VER}.deb ]; then
+	echo "Downloading SteamOS Startup Theme..."
+	wget "http://repo.steampowered.com/steamos/pool/main/p/plymouth-themes-steamos/plymouth-themes-steamos_${STEAMOS_PLYMOUTH_VER}.deb"
+fi
 set +e
 
 # See if there is a 'steam' user account. If not, create it.
