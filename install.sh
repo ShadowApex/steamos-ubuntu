@@ -181,15 +181,13 @@ if [[ "${UPDATE_CONFFILES}" == "true" ]]; then
 	envsubst < ./conf/reboot-to-steamos-mode.sh > /usr/local/sbin/reboot-to-steamos-mode
 	chmod +x /usr/local/sbin/reboot-to-desktop-mode
 	chmod +x /usr/local/sbin/reboot-to-steamos-mode
+	# Create a sudoers rule to allow passwordless reboots between sessions.
+	cp ./conf/reboot-sudoers.conf /etc/sudoers.d/steamos-reboot
+	chmod 440 /etc/sudoers.d/steamos-reboot
 
 	# Create the "steamos-fg" script as a workaround for games like Deadcells with the Steam compositor.
 	cp ./conf/steamos-fg.sh /usr/local/sbin/steamos-fg
 	chmod +x /usr/local/sbin/steamos-fg
-
-	# Create a sudoers rule to allow passwordless reboots between sessions.
-	echo "Creating sudoers rules to allow rebooting between sessions..."
-	cp ./conf/reboot-sudoers.conf /etc/sudoers.d/steamos-reboot
-	chmod 440 /etc/sudoers.d/steamos-reboot
 
 	# install steam plymouth theme
 	if [ ! -e /usr/share/plymouth/themes/steamos ]; then
