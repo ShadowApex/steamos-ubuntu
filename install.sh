@@ -129,9 +129,11 @@ if [[ "${INCLUDE_GPU_DRIVERS}" == "true" ]]; then
 fi
 
 # Install steam and steam device support.
-echo "Installing steam..."
-apt update
-apt install steam steam-devices x11-utils -y
+if [ ! -e /usr/games/steam ]; then
+	echo "Installing steam..."
+	apt update
+	apt install steam steam-devices x11-utils -y
+fi
 
 # WIP - find a way to enable Steamplay without using Desktop Steam Client. Also maybe find a way to enable Steam Beta with latest Steamplay
 # Enable SteamPlay
