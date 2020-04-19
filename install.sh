@@ -6,6 +6,7 @@ INCLUDE_OPENSSH="${INCLUDE_OPENSSH:-false}"
 INCLUDE_SAKURA="${INCLUDE_SAKURA:-false}"
 INCLUDE_PROTONFIX="${INCLUDE_PROTONFIX:-false}"
 INCLUDE_GPU_DRIVERS="${INCLUDE_GPU_DRIVERS:-false}"
+INCLUDE_MODESWITCH="${INCLUDE_MODESWITCH:-false}"
 UPDATE_CONFFILES="${UPDATE_CONFFILES:-true}"
 GPU_TYPE="${GPU_TYPE:-auto}"
 NON_INTERACTIVE="${NON_INTERACTIVE:-false}"
@@ -30,6 +31,7 @@ if [[ "${NON_INTERACTIVE}" != "true" ]]; then
 	echo "  OpenSSH:      ${INCLUDE_OPENSSH}"
 	echo "  Terminal:     ${INCLUDE_SAKURA}"
 	echo "  Proton Fixes: ${INCLUDE_PROTONFIX}"
+	echo "  Mode Switch:  ${INCLUDE_MODESWITCH}"
 	echo "  GPU Drivers:  ${INCLUDE_GPU_DRIVERS}"
 	echo "    GPU Type:   ${GPU_TYPE}"
 	echo "  Steam User:   ${STEAM_USER}"
@@ -145,6 +147,22 @@ if [[ "${INCLUDE_OPENSSH}" == "true" ]]; then
 	apt install openssh-server -y
 fi
 
+# Install Mode Switch (requires i386 architecture)
+if [[ "${INCLUDE_MODESWITCH}" == "true" ]]; then
+	if [ ! -e /usr/lib/x86_64-linux-gnu/libmodeswitch_inhibitor.so.0.0.0 ]; then
+		echo "Installing SteamOS ModeSwitch..."
+		if [ ! -e steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb ]; then
+			set -e
+			wget "http://repo.steampowered.com/steamos/pool/main/s/steamos-modeswitch-inhibitor/steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb"
+			set +e
+		fi
+		dpkg --add-architecture i386
+		apt update
+		dpkg -i steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb
+		apt install --fix-broken --assume-yes
+	fi
+fi
+
 # (Re-)install conf files from this repo
 if [[ "${UPDATE_CONFFILES}" == "true" ]]; then
 	echo "(Re-)Installing System Config"
@@ -207,20 +225,6 @@ if [[ "${UPDATE_CONFFILES}" == "true" ]]; then
 	fi
 	echo "Configuring the default session..."
 	cp ./conf/steam-session.conf "/var/lib/AccountsService/users/${STEAM_USER}"
-
-	# Install Mode Switch (requires i386 architecture)
-	if [ ! -e /usr/lib/x86_64-linux-gnu/libmodeswitch_inhibitor.so.0.0.0 ]; then
-		echo "Installing SteamOS ModeSwitch..."
-		if [ ! -e steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb ]; then
-			set -e
-			wget "http://repo.steampowered.com/steamos/pool/main/s/steamos-modeswitch-inhibitor/steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb"
-			set +e
-		fi
-		dpkg --add-architecture i386
-		apt update
-		dpkg -i steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb
-		apt install --fix-broken --assume-yes
-	fi
 fi
 
 echo
