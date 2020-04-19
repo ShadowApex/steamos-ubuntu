@@ -2,10 +2,10 @@
 
 # Set the defaults. These can be overridden by specifying the value as an
 # environment variable when running this script.
-INCLUDE_OPENSSH="${INCLUDE_OPENSSH:-true}"
-INCLUDE_SAKURA="${INCLUDE_SAKURA:-true}"
+INCLUDE_OPENSSH="${INCLUDE_OPENSSH:-false}"
+INCLUDE_SAKURA="${INCLUDE_SAKURA:-false}"
 INCLUDE_PROTONFIX="${INCLUDE_PROTONFIX:-false}"
-INCLUDE_GPU_DRIVERS="${INCLUDE_GPU_DRIVERS:-true}"
+INCLUDE_GPU_DRIVERS="${INCLUDE_GPU_DRIVERS:-false}"
 GPU_TYPE="${GPU_TYPE:-auto}"
 NON_INTERACTIVE="${NON_INTERACTIVE:-false}"
 STEAM_USER="${STEAM_USER:-steam}"
