@@ -228,6 +228,8 @@ if [[ "${UPDATE_CONFFILES}" == "true" ]]; then
 	fi
 	echo "Configuring the default session..."
 	cp ./conf/steam-session.conf "/var/lib/AccountsService/users/${STEAM_USER}"
+	cp ./bin/steamos-session /usr/bin/steamos-session
+	chmod 755 /usr/bin/steamos-session
 fi
 
 echo
