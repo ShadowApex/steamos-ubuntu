@@ -230,6 +230,8 @@ if [[ "${UPDATE_CONFFILES}" == "true" ]]; then
 	cp ./conf/steam-session.conf "/var/lib/AccountsService/users/${STEAM_USER}"
 	cp ./bin/steamos-session /usr/bin/steamos-session
 	chmod 755 /usr/bin/steamos-session
+	cp ./conf/steamos.desktop /usr/share/xsessions/steamos.desktop
+	chmod 134 /usr/share/xsessions/steamos.desktop
 fi
 
 echo
