@@ -2,10 +2,12 @@
 
 # Set the defaults. These can be overridden by specifying the value as an
 # environment variable when running this script.
-INCLUDE_OPENSSH="${INCLUDE_OPENSSH:-true}"
-INCLUDE_SAKURA="${INCLUDE_SAKURA:-true}"
+INCLUDE_OPENSSH="${INCLUDE_OPENSSH:-false}"
+INCLUDE_SAKURA="${INCLUDE_SAKURA:-false}"
 INCLUDE_PROTONFIX="${INCLUDE_PROTONFIX:-false}"
-INCLUDE_GPU_DRIVERS="${INCLUDE_GPU_DRIVERS:-true}"
+INCLUDE_GPU_DRIVERS="${INCLUDE_GPU_DRIVERS:-false}"
+INCLUDE_MODESWITCH="${INCLUDE_MODESWITCH:-false}"
+UPDATE_CONFFILES="${UPDATE_CONFFILES:-true}"
 GPU_TYPE="${GPU_TYPE:-auto}"
 NON_INTERACTIVE="${NON_INTERACTIVE:-false}"
 STEAM_USER="${STEAM_USER:-steam}"
@@ -16,6 +18,9 @@ export STEAM_USER
 STEAMOS_COMPOSITOR_VER="${STEAMOS_COMPOSITOR_VER:-1.35+bsos1_amd64}"
 STEAMOS_MODESWITCH_VER="${STEAMOS_MODESWITCH_VER:-1.10+bsos1_amd64}"
 STEAMOS_PLYMOUTH_VER="${STEAMOS_PLYMOUTH_VER:-0.17+bsos2_all}"
+
+# The default of this script is to reboot to steamos.
+REBOOT_MODE=reboot-to-steamos-mode
 
 # Ensure the script is being run as root
 if [ "$EUID" -ne 0 ]; then
@@ -29,9 +34,11 @@ if [[ "${NON_INTERACTIVE}" != "true" ]]; then
 	echo "  OpenSSH:      ${INCLUDE_OPENSSH}"
 	echo "  Terminal:     ${INCLUDE_SAKURA}"
 	echo "  Proton Fixes: ${INCLUDE_PROTONFIX}"
+	echo "  Mode Switch:  ${INCLUDE_MODESWITCH}"
 	echo "  GPU Drivers:  ${INCLUDE_GPU_DRIVERS}"
 	echo "    GPU Type:   ${GPU_TYPE}"
 	echo "  Steam User:   ${STEAM_USER}"
+	echo "  Update Config:${UPDATE_CONFFILES}"
 	echo ""
 	echo "This script will configure a SteamOS-like experience on Ubuntu."
 	read -p "Do you want to continue? [Yy] " -n 1 -r
@@ -43,14 +50,6 @@ if [[ "${NON_INTERACTIVE}" != "true" ]]; then
 		exit
 	fi
 fi
-
-# Download the packages we need. If we fail at downloading, stop the script.
-set -e
-echo "Downloading SteamOS packages..."
-wget "http://repo.steamstatic.com/steamos/pool/main/s/steamos-compositor/steamos-compositor_${STEAMOS_COMPOSITOR_VER}.deb"
-wget "http://repo.steamstatic.com/steamos/pool/main/s/steamos-modeswitch-inhibitor/steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb"
-wget "http://repo.steamstatic.com/steamos/pool/main/p/plymouth-themes-steamos/plymouth-themes-steamos_${STEAMOS_PLYMOUTH_VER}.deb"
-set +e
 
 # See if there is a 'steam' user account. If not, create it.
 if ! grep "^${STEAM_USER}" /etc/passwd > /dev/null; then
@@ -82,7 +81,7 @@ if [[ "${INCLUDE_GPU_DRIVERS}" == "true" ]]; then
 			echo "  Unable to determine GPU. Skipping driver install."
 		fi
 	fi
-	
+
 	# Install the GPU drivers.
 	case "${GPU_TYPE}" in
 		nvidia)
@@ -96,7 +95,7 @@ if [[ "${INCLUDE_GPU_DRIVERS}" == "true" ]]; then
 			add-apt-repository ppa:oibaf/graphics-drivers -y
 			apt update
 			apt dist-upgrade -y
-	
+
 			dpkg --add-architecture i386
 			apt update
 			apt install mesa-vulkan-drivers mesa-vulkan-drivers:i386 -y
@@ -106,7 +105,7 @@ if [[ "${INCLUDE_GPU_DRIVERS}" == "true" ]]; then
 			add-apt-repository ppa:paulo-miguel-dias/pkppa -y
 			apt update
 			apt dist-upgrade -y
-	
+
 			dpkg --add-architecture i386
 			apt update
 			apt install mesa-vulkan-drivers mesa-vulkan-drivers:i386 -y
@@ -121,20 +120,20 @@ if [[ "${INCLUDE_GPU_DRIVERS}" == "true" ]]; then
 fi
 
 # Install steam and steam device support.
-echo "Installing steam..."
-apt update
-apt install steam steam-devices x11-utils -y
-
-# WIP - find a way to enable Steamplay without using Desktop Steam Client. Also maybe find a way to enable Steam Beta with latest Steamplay
-# Enable SteamPlay
-#echo "Enable Steamplay..."
+if [ ! -e /usr/games/steam ]; then
+	echo "Installing steam..."
+	apt update
+	apt install steam steam-devices x11-utils -y
+	echo "You should run steam in desktop mode once to update and enable SteamPlay in settings."
+	REBOOT_MODE=reboot-to-desktop-mode
+fi
 
 # Enable Protonfix for ease of use with certain games that needs tweaking.
 # https://github.com/simons-public/protonfixes
 # Installing Protonfix for ease of use
 if [[ "${INCLUDE_PROTONFIX}" == "true" ]]; then
 	apt install python-pip python3-pip -y
-	echo "Installing protonfix..."    
+	echo "Installing protonfix..."
 	pip3 install protonfixes --upgrade
 	# Installing cefpython3 for visual progress bar
 	pip install cefpython3
@@ -153,42 +152,91 @@ if [[ "${INCLUDE_OPENSSH}" == "true" ]]; then
 	apt install openssh-server -y
 fi
 
-# Enable automatic login. We use 'envsubst' to replace the user with ${STEAM_USER}.
-echo "Enabling automatic login..."
-envsubst < ./conf/custom.conf > /etc/gdm3/custom.conf
+# Install Mode Switch (requires i386 architecture)
+if [[ "${INCLUDE_MODESWITCH}" == "true" ]]; then
+	if [ ! -e /usr/lib/x86_64-linux-gnu/libmodeswitch_inhibitor.so.0.0.0 ]; then
+		echo "Installing SteamOS ModeSwitch..."
+		if [ ! -e steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb ]; then
+			set -e
+			wget "http://repo.steampowered.com/steamos/pool/main/s/steamos-modeswitch-inhibitor/steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb"
+			set +e
+		fi
+		dpkg --add-architecture i386
+		apt update
+		dpkg -i steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb
+		apt install --fix-broken --assume-yes
+	fi
+fi
 
-# Create our session switching scripts to allow rebooting to the desktop
-echo "Creating reboot to session scripts..."
-envsubst < ./conf/reboot-to-desktop-mode.sh > /usr/local/sbin/reboot-to-desktop-mode
-envsubst < ./conf/reboot-to-steamos-mode.sh > /usr/local/sbin/reboot-to-steamos-mode
-chmod +x /usr/local/sbin/reboot-to-desktop-mode
-chmod +x /usr/local/sbin/reboot-to-steamos-mode
+# (Re-)install conf files from this repo
+if [[ "${UPDATE_CONFFILES}" == "true" ]]; then
+	echo "(Re-)Installing System Config"
+	# Enable automatic login. We use 'envsubst' to replace the user with ${STEAM_USER}.
+	echo "Enabling automatic login..."
+	envsubst < ./conf/custom.conf > /etc/gdm3/custom.conf
 
-# Create the "steamos-fg" script as a workaround for games like Deadcells with the Steam compositor.
-cp ./conf/steamos-fg.sh /usr/local/sbin/steamos-fg
-chmod +x /usr/local/sbin/steamos-fg
+	# Create our session switching scripts to allow rebooting to the desktop
+	echo "Creating reboot to session scripts..."
+	envsubst < ./conf/reboot-to-desktop-mode.sh > /usr/local/sbin/reboot-to-desktop-mode
+	envsubst < ./conf/reboot-to-steamos-mode.sh > /usr/local/sbin/reboot-to-steamos-mode
+	chmod +x /usr/local/sbin/reboot-to-desktop-mode
+	chmod +x /usr/local/sbin/reboot-to-steamos-mode
+	# Create a sudoers rule to allow passwordless reboots between sessions.
+	cp ./conf/reboot-sudoers.conf /etc/sudoers.d/steamos-reboot
+	chmod 440 /etc/sudoers.d/steamos-reboot
 
-# Create a sudoers rule to allow passwordless reboots between sessions.
-echo "Creating sudoers rules to allow rebooting between sessions..."
-cp ./conf/reboot-sudoers.conf /etc/sudoers.d/steamos-reboot
-chmod 440 /etc/sudoers.d/steamos-reboot
+	# Create the "steamos-fg" script as a workaround for games like Deadcells with the Steam compositor.
+	cp ./conf/steamos-fg.sh /usr/local/sbin/steamos-fg
+	chmod +x /usr/local/sbin/steamos-fg
 
-# Install the steamos compositor, modeswitch, and themes
-echo "Configuring the SteamOS boot themes..."
-dpkg -i ./*.deb &>/dev/null
-apt install -f -y
-update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/steamos/steamos.plymouth 100
-update-alternatives --set default.plymouth /usr/share/plymouth/themes/steamos/steamos.plymouth
+	# install steam plymouth theme
+	if [ ! -e /usr/share/plymouth/themes/steamos ]; then
+		echo "Configuring the SteamOS boot themes..."
+		if [ ! -e plymouth-themes-steamos_${STEAMOS_PLYMOUTH_VER}.deb ]; then
+			set -e
+			wget "http://repo.steampowered.com/steamos/pool/main/p/plymouth-themes-steamos/plymouth-themes-steamos_${STEAMOS_PLYMOUTH_VER}.deb"
+			set +e
+		fi
+		dpkg -i plymouth-themes-steamos_${STEAMOS_PLYMOUTH_VER}.deb
+		apt install --fix-broken --assume-yes
 
-# Update the grub theme.
-echo 'GRUB_BACKGROUND=/usr/share/plymouth/themes/steamos/steamos_branded.png' | tee -a /etc/default/grub
-update-grub
+		# also see /usr/bin/steamos/update_plymouth_branding.sh
+		update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/steamos/steamos.plymouth 100
+		update-alternatives --set default.plymouth /usr/share/plymouth/themes/steamos/steamos.plymouth
 
-# Set the X session to use the installed steamos session
-echo "Configuring the default session..."
-cp ./conf/steam-session.conf "/var/lib/AccountsService/users/${STEAM_USER}"
+		# Update the grub theme.
+		GRUB_BACKGROUND_LINE='GRUB_BACKGROUND=/usr/share/plymouth/themes/steamos/steamos_branded.png'
+		if grep '^GRUB_BACKGROUND=' /etc/default/grub; then
 
-echo ""
-echo "Installation complete! Press ENTER to reboot or CTRL+C to exit"
+			sed -i "s@^GRUB_BACKGROUND=.*@${GRUB_BACKGROUND_LINE}@" /etc/default/grub
+		else
+			echo 'GRUB_BACKGROUND=/usr/share/plymouth/themes/steamos/steamos_branded.png' >> /etc/default/grub
+		fi
+		update-grub
+	fi
+
+	# Set the X session to use the installed steamos session
+	if [ ! -e /usr/share/xsessions/steamos.desktop ]; then
+		echo "Installing SteamOS Compositor..."
+		if [ ! -e steamos-compositor_${STEAMOS_COMPOSITOR_VER}.deb ]; then
+			set -e
+			wget "http://repo.steampowered.com/steamos/pool/main/s/steamos-compositor/steamos-compositor_${STEAMOS_COMPOSITOR_VER}.deb"
+			set +e
+		fi
+		dpkg -i steamos-compositor_${STEAMOS_COMPOSITOR_VER}.deb
+		apt install --fix-broken --assume-yes
+	fi
+	echo "Configuring the default session..."
+	cp ./conf/steam-session.conf "/var/lib/AccountsService/users/${STEAM_USER}"
+	cp ./bin/steamos-session /usr/bin/steamos-session
+	chmod 755 /usr/bin/steamos-session
+	cp ./conf/steamos.desktop /usr/share/xsessions/steamos.desktop
+	chmod 134 /usr/share/xsessions/steamos.desktop
+fi
+
+echo
+echo "Installation complete!"
+echo
+echo "Press [ENTER] to reboot or [CTRL]+C to exit"
 read -r
-reboot
+eval $REBOOT_MODE
