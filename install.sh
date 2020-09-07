@@ -91,7 +91,7 @@ if [[ "${INCLUDE_GPU_DRIVERS}" == "true" ]]; then
 			echo "Installing the latest Nvidia drivers..."
 			add-apt-repository ppa:graphics-drivers/ppa -y
 			apt update
-			apt install nvidia-driver-415 -y
+			apt install nvidia-driver-440 -y
 			;;
 		amd)
 			echo "Installing the latest AMD drivers..."
@@ -179,7 +179,7 @@ update-alternatives --install /usr/share/plymouth/themes/default.plymouth defaul
 update-alternatives --set default.plymouth /usr/share/plymouth/themes/steamos/steamos.plymouth
 
 # Install Alienware WMI Control
-tar xvf steamos-base-files_${STEAMOS_ALIENWAREWMI_VER}.tar.xz --strip-components=3 -C /usr/bin/ steamos-base-files-2.58/usr/bin/alienware_wmi_control.sh
+tar xvf steamos-base-files_${STEAMOS_ALIENWAREWMI_VER}.tar.xz --strip-components=3 -C /usr/bin/ steamos-base-files-${STEAMOS_ALIENWAREWMI_VER}/usr/bin/alienware_wmi_control.sh
 chmod +x /usr/bin/alienware_wmi_control.sh
 
 # Update the grub theme.
