@@ -16,6 +16,7 @@ export STEAM_USER
 STEAMOS_COMPOSITOR_VER="${STEAMOS_COMPOSITOR_VER:-1.35+bsos1_amd64}"
 STEAMOS_MODESWITCH_VER="${STEAMOS_MODESWITCH_VER:-1.10+bsos1_amd64}"
 STEAMOS_PLYMOUTH_VER="${STEAMOS_PLYMOUTH_VER:-0.17+bsos2_all}"
+STEAMOS_ALIENWAREWMI_VER="${STEAMOS_ALIENWAREWMI_VER:-2.58}"
 
 # Ensure the script is being run as root
 if [ "$EUID" -ne 0 ]; then
@@ -50,6 +51,7 @@ echo "Downloading SteamOS packages..."
 wget "http://repo.steamstatic.com/steamos/pool/main/s/steamos-compositor/steamos-compositor_${STEAMOS_COMPOSITOR_VER}.deb"
 wget "http://repo.steamstatic.com/steamos/pool/main/s/steamos-modeswitch-inhibitor/steamos-modeswitch-inhibitor_${STEAMOS_MODESWITCH_VER}.deb"
 wget "http://repo.steamstatic.com/steamos/pool/main/p/plymouth-themes-steamos/plymouth-themes-steamos_${STEAMOS_PLYMOUTH_VER}.deb"
+wget "http://repo.steamstatic.com/steamos/pool/main/s/steamos-base-files/steamos-base-files_${STEAMOS_ALIENWAREWMI_VER}.tar.xz"
 set +e
 
 # See if there is a 'steam' user account. If not, create it.
@@ -89,7 +91,7 @@ if [[ "${INCLUDE_GPU_DRIVERS}" == "true" ]]; then
 			echo "Installing the latest Nvidia drivers..."
 			add-apt-repository ppa:graphics-drivers/ppa -y
 			apt update
-			apt install nvidia-driver-415 -y
+			apt install nvidia-driver-440 -y
 			;;
 		amd)
 			echo "Installing the latest AMD drivers..."
@@ -124,10 +126,6 @@ fi
 echo "Installing steam..."
 apt update
 apt install steam steam-devices x11-utils -y
-
-# WIP - find a way to enable Steamplay without using Desktop Steam Client. Also maybe find a way to enable Steam Beta with latest Steamplay
-# Enable SteamPlay
-#echo "Enable Steamplay..."
 
 # Enable Protonfix for ease of use with certain games that needs tweaking.
 # https://github.com/simons-public/protonfixes
@@ -180,6 +178,10 @@ apt install -f -y
 update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/steamos/steamos.plymouth 100
 update-alternatives --set default.plymouth /usr/share/plymouth/themes/steamos/steamos.plymouth
 
+# Install Alienware WMI Control
+tar xvf steamos-base-files_${STEAMOS_ALIENWAREWMI_VER}.tar.xz --strip-components=3 -C /usr/bin/ steamos-base-files-${STEAMOS_ALIENWAREWMI_VER}/usr/bin/alienware_wmi_control.sh
+chmod +x /usr/bin/alienware_wmi_control.sh
+
 # Update the grub theme.
 echo 'GRUB_BACKGROUND=/usr/share/plymouth/themes/steamos/steamos_branded.png' | tee -a /etc/default/grub
 update-grub
@@ -188,7 +190,14 @@ update-grub
 echo "Configuring the default session..."
 cp ./conf/steam-session.conf "/var/lib/AccountsService/users/${STEAM_USER}"
 
+# WIP - find a way to enable Steamplay without using Desktop Steam Client. Also maybe find a way to enable Steam Beta with latest Steamplay
+# Enable SteamPlay
+echo "Enable Steamplay..."
+echo "Starting Steam to create initial configurations."
+echo "Close steam to continue."
+sudo STEAM_USER=${STEAM_USER} ./run_steam.sh
+
 echo ""
 echo "Installation complete! Press ENTER to reboot or CTRL+C to exit"
 read -r
-reboot
+sudo reboot
