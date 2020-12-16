@@ -42,7 +42,7 @@ Installation is very simple. Follow these steps to install SteamOS Ubuntu:
 5. Run the `sudo passwd steam` command and follow the instructions to change the password to the Steam user account, then run the `reboot-to-desktop-mode` command to reboot to the GNOME desktop environment.
 
 6. When back in the GNOME desktop environment, press "CTRL+ALT+T" or open the Terminal, and run these commands in order:    
-`sudo mkdir -p ~/.steam/ubuntu12_32/steam-runtime`
+`sudo mkdir -p ~/.steam/ubuntu12_32/steam-runtime`    
 `steam`
 
 7. After Steam is finished updating (When the Steam login window appears), close Steam, and run this command to reboot into SteamOS mode:    
