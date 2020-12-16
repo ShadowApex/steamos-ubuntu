@@ -42,11 +42,10 @@ Installation is very simple. Follow these steps to install SteamOS Ubuntu:
 5. Run the `sudo passwd steam` command and follow the instructions to change the password to the Steam user account, then run the `reboot-to-desktop-mode` command to reboot to the GNOME desktop environment.
 
 6. When back in the GNOME desktop environment, press "CTRL+ALT+T" or open the Terminal, and run these commands in order:
-
 `sudo mkdir -p ~/.steam/ubuntu12_32/steam-runtime`
+`steam`
 
-`steam` (Just until the point which the Steam login window appears, which afterwards is safe to close)
-
+7. After Steam is finished updating (When the Steam login window appears), close Steam, and run this command to reboot into SteamOS mode:
 `reboot-to-steamos-mode`
 
 ## Advanced Options
@@ -103,7 +102,7 @@ wish to use this script with.
 
 ### How can I change the resolution and refresh rate used in SteamOS mode?
 
-After installation, follow [this guide](https://github.com/ValveSoftware/SteamOS/wiki/Custom-Resolutions-And-Refresh-Rates) for instructions on how to change the screen resolution and refresh rate. This can optionally be done in "Step 6" of the Installation guide before rebooting to SteamOS mode.
+After installation, follow [this guide](https://github.com/ValveSoftware/SteamOS/wiki/Custom-Resolutions-And-Refresh-Rates) for instructions on how to change the screen resolution and refresh rate. This can be done after "Step 6" of the Installation guide.
 
 ## Attributions
 * Alkazar for [steamos-fg](https://github.com/alkazar/steamos-fg)
