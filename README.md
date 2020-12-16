@@ -37,6 +37,15 @@ Installation is very simple. Follow these steps to install SteamOS Ubuntu:
 `cd steamos-ubuntu`    
 `sudo ./install.sh`
 
+4. If the "STEAM needs to be online to update" error appears on startup, Press CTRL+ALT+F3 to enter a virtual terminal, and login with the account used before installation.
+
+5. Run the `sudo passwd steam` command and follow the instructions to change the password to the Steam user account, then run the `reboot-to-desktop-mode` command to reboot to the GNOME desktop environment.
+
+6. When back in the GNOME desktop environment, press "CTRL+ALT+T" or open the Terminal, and run these commands in order:
+`sudo mkdir -p ~/.steam/ubuntu12_32/steam-runtime`
+`steam` (Just until the point which the Steam login window appears, which afterwards is safe to close)
+`reboot-to-steamos-mode`
+
 ## Advanced Options
 The installation script has several options that you can specify upon installation
 in the form of environment variables. You can specify these options by prefixing
@@ -88,6 +97,10 @@ Affected games this script fixes include:
 
 To fix this, add `steamos-fg %command%` to the launch options for each game you 
 wish to use this script with.
+
+### How can I change the resolution and refresh rate used in SteamOS mode?
+
+After installation, follow [this guide](https://github.com/ValveSoftware/SteamOS/wiki/Custom-Resolutions-And-Refresh-Rates) for instructions on how to change the screen resolution and refresh rate. This can optionally be done in "Step 6" of the Installation guide before rebooting to SteamOS mode.
 
 ## Attributions
 * Alkazar for [steamos-fg](https://github.com/alkazar/steamos-fg)
