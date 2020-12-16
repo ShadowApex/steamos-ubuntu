@@ -107,6 +107,7 @@ After installation, follow [this guide](https://github.com/ValveSoftware/SteamOS
 ## Attributions
 * Alkazar for [steamos-fg](https://github.com/alkazar/steamos-fg)
 * nickcj931 for the [Steam offline error fix](https://github.com/ShadowApex/steamos-ubuntu/issues/6#issuecomment-498036893)
+* gamer-os for [Steam-Compositor-Plus](https://github.com/gamer-os/steamos-compositor-plus)
 
 ## Legal
 The Steam logo and Ubuntu logo are registered trademarks of Valve Corporation

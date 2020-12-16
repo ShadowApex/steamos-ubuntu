@@ -188,6 +188,10 @@ update-grub
 echo "Configuring the default session..."
 cp ./conf/steam-session.conf "/var/lib/AccountsService/users/${STEAM_USER}"
 
+# Install SteamOS-Compositor-Plus, and replace the built-in Steam compositor with it.
+echo "Installing SteamOS-Compositor-Plus..."
+wget https://raw.githubusercontent.com/gamer-os/steamos-compositor/master/steamos-install.sh && sudo bash steamos-install.sh
+
 echo ""
 echo "Installation complete! Press ENTER to reboot or CTRL+C to exit"
 read -r
