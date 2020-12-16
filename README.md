@@ -39,7 +39,7 @@ Installation is very simple. Follow these steps to install SteamOS Ubuntu:
 
 4. If the "STEAM needs to be online to update" error appears on startup, Press CTRL+ALT+F3 to enter a virtual terminal, and login with the account used before installation.
 
-5. Run the `sudo passwd steam` command and follow the instructions to change the password to the Steam user account, then run the `reboot-to-desktop-mode` command to reboot to the GNOME desktop environment.
+5. Run the `sudo passwd steam` command and follow the instructions to change the password to the Steam user account (as this will be required to run any sudo commands), run `sudo usermod -aG sudo steam` to give the account elevated privileges, then run the `reboot-to-desktop-mode` command to reboot to the GNOME desktop environment.
 
 6. When back in the GNOME desktop environment, press "CTRL+ALT+T" or open the Terminal, and run these commands in order:    
 `sudo mkdir -p ~/.steam/ubuntu12_32/steam-runtime`    
